@@ -25,11 +25,11 @@
 
         {% include includes.header.html %}
 
-        <form id="form-bug" method="post" action="{{$root}}/save-bug" target="ifr" name="ifr" enctype="multipart/form-data">
+        <form id="form-bug" method="post" action="{{root}}/save-bug" target="ifr" name="ifr" enctype="multipart/form-data">
 
             <div class="header">
                 <div>
-                    <a href="{{$root}}/list-bugs/{{$projectId}}">View bugs</a> <br/>
+                    <a href="{{root}}/list-bugs/{{projectId}}">View bugs</a> <br/>
                 </div>
 
                 <br/>
@@ -58,18 +58,16 @@
                     </select>
                 </div>
 
-                <?php if(isset($users) && count($users)>0){?>
+                {%  if users and users|length > 0  %}
                 <div class="form-label">Assign to</div>
                 <div class="form-row">
                     <select name="users[]" multiple="multiple" style="min-height: 50px; max-width: 300px">
-                        <?php
-                            foreach($users as $user){
-                                echo "<option value='" . $user->id . "'>" . $user->name . "</option>";
-                            }
-                        ?>
+                        {% for user in users  %}
+                                <option value='{{ user.id  }}'>{{ user.name }}</option>";
+                        {% endfor %}
                     </select>
                 </div>
-                <?php } ?>
+                {% endif %}
 
                 <br/>
 
@@ -92,6 +90,6 @@
     </div>
 </div>
 
-@include('includes.footer')
+{% include includes.footer.html %}
 </body>
 </html>
