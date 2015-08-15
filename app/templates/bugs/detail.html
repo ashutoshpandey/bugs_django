@@ -1,0 +1,108 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>
+        Administrator Section
+    </title>
+
+    <link type="text/css" rel="stylesheet" href="{% static "css/jquery.dataTables.css" %}"/>
+    <link type="text/css" rel="stylesheet" href="{% static "css/theme/transdmin.css" %}"/>
+    <link type="text/css" rel="stylesheet" href="{% static "css/common.css" %}"/>
+    <link type="text/css" rel="stylesheet" href="{% static "css/bugs/detail.css" %}"/>
+
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.dataTables.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/common.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/bugs/detail.js" %}"></script>
+
+</head>
+<body>
+<div>
+
+    <div id="wrapper" class="main-container">
+
+        {% include includes.header.html %}
+
+        <div class="header">
+            <div class="form-row">
+                <a href="{{root}}/list-bugs/{{project.id}}">Back</a>
+                <br/>
+            </div>
+            <br/>
+
+            <div class="form-row">
+                Project: <b>{{project.name}}</b><br/>
+            </div>
+
+            <div class="form-row">
+                Posted by : {{bug.user.name}}
+            </div>
+            <div class="form-row">
+                Level : <span class="{{bug.severity | lower}}">{{bug.severity | lower}}</span>
+            </div>
+            <br/>
+            <div class="form-row">
+                <strong>{{bug.title}}</strong>
+            </div>
+            <br/>
+            <div class="form-row">
+                {{bug.description}}
+            </div>
+            <br/>
+            
+            {% if bugFiles != null and bugFiles|length > 0 %}
+
+                    {% image_types= array('jpeg','jpg','gif','png', 'pdf', 'doc', 'docx')  %}
+
+
+                    {% for bugFile in bugFiles %}
+
+                            {% extension = pathinfo(bugFile.file_name, PATHINFO_EXTENSION)  %}
+
+                            <div class='form-row'>
+
+                            {% if extension in image_types %}
+                                    <a href='{{ root }}/public/uploads/{{ bugFile.saved_file_name }}' target='_blank'><img class='bug-image' src='{{ root }}/public/uploads/{{ bugFile.saved_file_name }}'/></a>
+                            {% else  %}
+                                    <a href='{{ root }}/download-bug/{{ bug.id }}'>{{ bugFile.file_name }}</a>
+
+                            {% endif %}
+                            </div>
+                    {% endfor %}
+            {% endif %}
+
+            <br/>
+            <div class="form-row">
+                <form action="{{root}}/save-bug-comment" id="form-comment" method="post" target="ifr" enctype="multipart/form-data" onsubmit="return checkComment()">
+                    <textarea name="comment" rows="5" cols="40" placeholder="Add your comment"></textarea>
+
+                    <br/><br/>
+
+                    <div class="form-row"><span class="add-file">Add attachment</span></div>
+
+                    <br/>
+
+                    <div class="form-row file-container"></div>
+                    <br/>
+
+                    <input type="submit" name="btn-add-comment" value="Add comment"/>
+                </form>
+                <iframe id="ifr" name="ifr" style="width:1px;height:1px;visibility: hidden"></iframe>
+            </div>
+
+            <div class="form-row bug-comments"></div>
+
+        </div>
+
+        <div id="bug-comments"></div>
+    </div>
+
+</div>
+
+{% include includes.footer.html %}
+
+</body>
+</html>

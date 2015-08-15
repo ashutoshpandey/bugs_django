@@ -1,0 +1,47 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>
+        Administrator Section
+    </title>
+
+    <link type="text/css" rel="stylesheet" href="{% static "css/jquery.dataTables.css" %}"/>
+    <link type="text/css" rel="stylesheet" href="{% static "css/theme/transdmin.css" %}"/>
+    <link type="text/css" rel="stylesheet" href="{% static "css/common.css" %}"/>
+    <link type="text/css" rel="stylesheet" href="{% static "css/projects/list.css" %}"/>
+
+    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/jquery.dataTables.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/common.js" %}"></script>
+    <script type="text/javascript" src="{% static "js/users/list.js" %}"></script>
+
+</head>
+<body>
+<div>
+
+    <div id="wrapper" class="main-container">
+
+        {% include includes.header.html %}
+
+        <div class="header">
+            <div>
+                <a href="{{$root}}/create-user">Create user</a>
+            </div>
+
+            <br/>
+            <h1 class="form-header">Users in system</h1>
+            <br/>
+        </div>
+
+        <div id="table-data"></div>
+    </div>
+
+</div>
+
+@include('includes.footer')
+
+</body>
+</html>
