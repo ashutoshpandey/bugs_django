@@ -1,214 +1,200 @@
-<?php
+from django.shortcuts import render, redirect, RequestContext
+from django.http import HttpResponse
+from django.contrib.sessions.models import Session
 
-class UserController extends BaseController {
+import json
 
-    function __construct(){
-        View::share('root', URL::to('/'));
-        View::share('name', Session::get('name'));
-        View::share('userType', Session::get('userType'));
-    }
+from app.models import Project,Bug,BugUser,User
 
-    function userSection(){
+def user_section(request):
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return Redirect::to('/');
+    user_id = request.session['user_id']
+    if not user_id:
+        return redirect('/')
 
-        $runningProjects = Project::where('status', '=', 'active')->count();
-        $closedProjects = Project::where('status', '=', 'closed')->count();
-        $currentBugs = Bug::where('status', '=', 'active')->count();
-        $fixedBugs = Bug::where('status', '=', 'fixed')->count();
-        $unresolvedBugs = Bug::where('status', '=', 'unresolved')->count();
+    running_projects = Project.objects.filter({'status': 'active'})
+    closed_projects = Project.objects.filter({'status': 'closed'})
+    current_bugs = Bug.objects.filter({'status': 'active'})
+    fixed_bugs = Bug.objects.filter({'status': 'fixed'})
+    unresolved_bugs = Bug.objects.filter({'status': 'unresolved'})
 
-        $userBugs = BugUser::where('user_id', '=', $userId)->where('status', '=', 'active')->with('bug')->with('bug.project')->get();
+    user_bugs = BugUser.objects.filter({'user_id': user_id, 'status': 'active'})
 
-        return View::make('users.user-section')
-                ->with('runningProjects', $runningProjects)
-                ->with('closedProjects', $closedProjects)
-                ->with('currentBugs', $currentBugs)
-                ->with('fixedBugs', $fixedBugs)
-                ->with('unresolvedBugs', $unresolvedBugs)
-                ->with('userBugs', $userBugs);
-    }
+    response_data = {
+                        'running_projects': running_projects,
+                        'closed_projects': closed_projects,
+                        'current_bugs': current_bugs,
+                        'fixed_bugs': fixed_bugs,
+                        'unresolved_bugs': unresolved_bugs,
+                        'user_bugs': user_bugs
+                    }
 
-    function createUser(){
+    return render(request, 'users/user-section.html', response_data)
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return Redirect::to('/');
 
-        return View::make('users.create');
-    }
+def create_user(request):
 
-    function saveUser(){
+    user_id = request.session['user_id']
+    if not user_id:
+        return redirect('/')
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return 'not logged';
+    return render(request, 'users/create.html')
 
-        $email = Input::get('email');
 
-        $user = User::where('email', '=', $email)->first();
+def save_user(request):
 
-        if(isset($user)){
-            echo 'Duplicate email';
-        }
-        else{
-            $user = new User();
+    user_id = request.session['user_id']
+    if not user_id:
+        return "not logged"
 
-            $user->email = $email;
-            $user->name = Input::get('name');
-            $user->password = Input::get('password');
-            $user->user_type = Input::get('user_type');
-            $user->status = 'active';
+    email = request.POST.get('email')
 
-            $user->save();
+    user = User.objects.get({'email': email})
 
-            echo 'User created successfully';
-        }
-    }
+    if user:
+        print('Duplicate email')
+    else:
+        user = User.new
 
-    function profile(){
+        user.email = email
+        user.name = request.POST.get('name')
+        user.password = request.POST.get('password')
+        user.user_type = request.POST.get('user_type')
+        user.status = 'active'
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return Redirect::to('/');
+        user.save()
 
-        $userId = Session::get('userId');
+        print('User created successfully')
 
-        if(isset($userId)){
-            $user = User::find($userId);
 
-            if(isset($user)){
 
-                return View::make('users.profile')->with('user', $user);
-            }
-            else
-                return Redirect::to('/');
-        }
-        else
-            return Redirect::to('/');
-    }
+def profile(request):
 
-    function updateProfile(){
+    user_id = request.session['user_id']
+    if not user_id:
+        return redirect('/')
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return 'not logged';
+    user = User.objects.get(id=user_id)
 
-        $userId = Session::get('userId');
+    if user:
+        return render(request, 'users/profile.html', {'user': user})
+    else:
+        return redirect('/')
 
-        $user = User::find($userId);
 
-        if(isset($user)){
+def update_profile(request):
 
-            $email = Input::get('email');
+    user_id = request.session['user_id']
+    if not user_id:
+        return "not logged"
 
-            $userByEmail = User::where('email', '=', $email)->first();
+    user = User.objects.get(id=user_id)
 
-            if(isset($userByEmail) && $userByEmail->id != $user->id)
-                echo 'Email already taken';
-            else{
-                $user->id = $userId;
-                $user->email = $email;
-                $user->name = Input::get('name');
-                $user->password = Input::get('password');
-                $user->user_type = Input::get('user_type');
+    if user:
 
-                $user->save();
+        email = request.POST.get('email')
 
-                echo 'Profile updated successfully';
-            }
-        }
-        else
-            echo 'Invalid user';
-    }
+        user_by_email = User.objects.get({'email': email})
 
-    function editUser($userId){
+        if user_by_email and (not(user_by_email.id == user_id)):
+            print('Email already taken')
+        else:
+            user.email = email
+            user.name = request.POST.get('name')
+            user.password = request.POST.get('password')
+            user.user_type = request.POST.get('user_type')
 
-        if(!isset($userId))
-            return Redirect::to('/');
+            user.save()
 
-        if(isset($userId)){
-            $user = User::find($userId);
+            print('Profile updated successfully')
+    else:
+        print('Invalid user')
 
-            Session::put('current_edit_user', $userId);
 
-            if(isset($user)){
+def edit_user(request, user_id):
 
-                return View::make('users.edit')->with('user', $user);
-            }
-            else
-                return Redirect::to('/');
-        }
-        else
-            return Redirect::to('/');
-    }
+    user_id = request.session['user_id']
+    if not user_id:
+        return redirect('/')
 
-    function updateUser(){
+    if user_id:
+        user = User.objects.get(id=user_id)
 
-        $userId = Session::get('current_edit_user');
-        if(!isset($userId))
-            return 'invalid';
+        request.session['current_edit_user'] = user_id
 
-        $user = User::find($userId);
+        if user:
+            return render(request, 'users/edit.html', {'user': user})
+        else:
+            return redirect('/')
 
-        if(isset($user)){
+    else:
+        return redirect('/')
 
-            $user->name = Input::get('name');
-            $user->password = Input::get('password');
-            $user->user_type = Input::get('user_type');
 
-            $user->save();
+def update_user(request):
 
-            echo 'Profile updated successfully';
-        }
-        else
-            echo 'Invalid user';
-    }
+    user_id = request.session['user_id']
+    if not user_id:
+        return "invalid"
 
-    function listUsers(){
+    user = User.objects.get(id=user_id)
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return Redirect::to('/');
+    if user:
 
-        return View::make('users.list');
-    }
+        user.name = request.POST.get('name')
+        user.password = request.POST.get('password')
+        user.user_type = request.POST.get('user_type')
 
-    function removeUser($userId){
+        user.save()
 
-        if(isset($userId)) {
+        print('Profile updated successfully')
 
-            $user = User::find($userId);
+    else:
+        print('Invalid user')
 
-            if(isset($user)){
-                $user->status = 'removed';
 
-                $user->save();
+def list_users(request):
 
-                echo 'done';
-            }
-            else
-                echo 'invalid';
-        }
-        else
-            echo 'invalid';
-    }
+    user_id = request.session['user_id']
+    if not user_id:
+        return redirect('/')
 
-    /************** json methods ***************/
+    return render(request, 'users/list.html')
 
-    function dataListUsers(){
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return json_encode(array('message' => 'not logged'));
+def remove_user(user_id):
 
-        $users = User::where('status', '=', 'active')->get();
+    if user_id:
 
-        if(isset($users))
-            return json_encode(array('found' => true, 'users' => $users->toArray(), 'message' => 'logged'));
-        else
-            return json_encode(array('found' => true, 'message' => 'logged'));
-    }
-}
+        user = User.objects.get(id=user_id)
+
+        if user:
+            user.status = 'removed'
+
+            user.save()
+
+            print('done')
+
+        else:
+            print('invalid')
+
+    else:
+        print('invalid')
+
+
+#************** json methods ***************
+
+def data_list_users(request):
+
+    user_id = request.session['user_id']
+    if not user_id:
+        return HttpResponse(json.dumps({'message': 'not logged'}), content_type="application/json")
+
+    users = User.objects.get({'status': 'active'})
+
+    if users and len(users)>0:
+        response_data = {'found': True, 'users': users, 'message': 'logged'}
+    else:
+        response_data = {'found': False, 'message': 'logged'}
+
+    return HttpResponse(json.dumps(response_data), content_type="application/json")
