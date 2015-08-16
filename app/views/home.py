@@ -1,14 +1,4 @@
-<?php
+from django.shortcuts import render
 
-class HomeController extends BaseController {
-
-    function __construct(){
-        View::share('root', URL::to('/'));
-    }
-
-	public function home()
-	{
-		return View::make('home');
-	}
-
-}
+def home(request):
+    return render(request, 'home.html')

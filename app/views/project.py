@@ -1,139 +1,140 @@
-<?php
+from django.shortcuts import render, redirect, RequestContext
+from django.http import HttpResponse
+from django.contrib.sessions.models import Session
 
-class ProjectController extends BaseController {
+import json
 
-    function __construct(){
-        View::share('root', URL::to('/'));
-        View::share('name', Session::get('name'));
-        View::share('userType', Session::get('userType'));
-    }
+from app.models import Project
 
-    function createProject(){
+def create_project(request):
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return Redirect::to('/');
+    user_id = request.session['user_id']
+    if not user_id:
+        return redirect('/')
 
-        return View::make('projects.create');
-    }
+    return render(request, 'projects/create.html')
 
-    function saveProject(){
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return "not logged";
+def save_project(request):
 
-        $name = Input::get('name');
-        $project = Project::where('name', '=', $name)->where('status', '=', 'active')->first();
+    user_id = request.session['user_id']
+    if not user_id:
+        return "not logged"
 
-        if(isset($project))
-            return "duplicate";
-        else {
-            $project = new Project();
+    name = request.POST.get('name')
+    project = Project.objects.filter({'name': name, 'status': 'active'})
 
-            $project->name = $name;
-            $project->description = Input::get('description');
-            $project->status = 'active';
-            $project->created_by = Session::get('userId');
+    if project:
+        return "duplicate"
+    else:
+        project = Project.new
 
-            $project->save();
+        project.name = name
+        project.description = request.POST.get('description')
+        project.status = 'active'
+        project.created_by = request.session['user_id']
 
-            echo 'done';
-        }
-    }
+        project.save()
 
-    function editProject($id){
+        print('done')
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return Redirect::to('/');
 
-        $project = Project::find($id);
 
-        Session::put('currentProjectId', $id);
+def edit_project(request, project_id):
 
-        return View::make('projects.edit')->with('project', $project);
-    }
+    user_id = request.session['user_id']
+    if not user_id:
+        return redirect('/')
 
-    function updateProject(){
+    project = Project.objects.get(id=project_id)
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return "not logged";
+    request.session['currentProjectId'] = project_id
 
-        $id = Session::get('currentProjectId');
+    return render(request, 'projects/edit.html', {'project': project})
 
-        $project = Project::find($id);
 
-        if($project){
+def update_project(request):
 
-            $name = Input::get('name');
-            $description = Input::get('description');
-            $status = Input::get('status');
+    user_id = request.session['user_id']
+    if not user_id:
+        return "not logged"
 
-            if(isset($name))
-                $project->name = Input::get('name');
+    project_id = request.session['current_project_id']
 
-            if(isset($description))
-                $project->description = Input::get('description');
+    project = Project.objects.get(id=project_id)
 
-            if(isset($status))
-                $project->status = Input::get('status');
+    if project:
 
-            $project->save();
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        status = request.POST.get('status')
 
-            echo 'done';
-        }
-        else
-            echo 'invalid';
-    }
+        if name:
+            project.name = request.POST.get('name')
 
-    function removeProject($id){
+        if description:
+            project.description = request.POST.get('description')
 
-        if(isset($id)) {
+        if status:
+            project.status = request.POST.get('status')
 
-            $project = Project::find($id);
+        project.save()
 
-            if(isset($project)){
-                $project->status = 'removed';
+        print('done')
 
-                $project->save();
+    else:
+        print('invalid')
 
-                Bug::where('project_id', '=', $id)->update(array('status' => 'removed'));
 
-                echo 'done';
-            }
-            else
-                echo 'invalid';
-        }
-        else
-            echo 'invalid';
-    }
+def remove_project(request, project_id):
 
-    function listProjects(){
+    user_id = request.session['user_id']
+    if not user_id:
+        return "not logged"
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return Redirect::to('/');
+    if id:
 
-        $projects = Project::where('status','=','active')->get();
+        project = Project.objects.get(id=project_id)
 
-        return View::make('projects.list')->with('projects', $projects);
-    }
+        if project:
+            project.status = 'removed'
 
-    /***************** json methods *****************/
-    function dataListProjects(){
+            project.save()
 
-        $userId = Session::get('userId');
-        if(!isset($userId))
-            return json_encode(array('message' => 'not logged'));
+            #Bug::where('project_id', '=', id).update(array('status' => 'removed'))
 
-        $projects = Project::where('status','=','active')->get();
+            print('done')
 
-        if($projects && count($projects)>0)
-            return json_encode(array('found' => true, 'projects' => $projects->toArray(), 'message' => 'logged'));
-        else
-            return json_encode(array('found' => false, 'message' => 'logged'));
-    }
+        else:
+            print('invalid')
 
-}
+    else:
+        print('invalid')
+
+
+def list_projects(request):
+
+    user_id = request.session['user_id']
+    if not user_id:
+        return redirect('/')
+
+    projects = Project.objects.filter('status','active')
+
+    return render(request, 'projects/list.html', {'projects': projects})
+
+
+#***************** json methods *****************
+def data_list_projects(request):
+
+    user_id = request.session['user_id']
+    if not user_id:
+        return HttpResponse(json.dumps({'message': 'not logged'}), content_type="application/json")
+
+    projects = Project.objects.filter({'status','active'})
+
+    if projects and len(projects)>0:
+        response_data = {'found': True, 'projects': projects, 'message': 'logged'}
+    else:
+        response_data = {'found': False, 'message': 'logged'}
+
+    return HttpResponse(json.dumps(response_data), content_type="application/json")
