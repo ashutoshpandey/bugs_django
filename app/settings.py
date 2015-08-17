@@ -48,7 +48,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
+#    'django.middleware.security.SecurityMiddleware',
 )
 
 ROOT_URLCONF = 'app.urls'
@@ -78,10 +78,10 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.media",
     "django.core.context_processors.request",
     "django.core.context_processors.tz",
-    "app.context.common_data_to_templates",
+#    "bugsdjango.app.context_processors.common_data_to_templates",
 )
 
-WSGI_APPLICATION = 'bugsdjango.wsgi.application'
+WSGI_APPLICATION = 'app.wsgi.application'
 
 
 # Database

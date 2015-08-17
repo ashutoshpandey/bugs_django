@@ -19,7 +19,7 @@ from .views import *
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^bugsdjango/', home.home, name='home'),
+    url(r'^bugsdjango/', home.index, name='home'),
 
     url(r'^bugsdjango/is-valid-user', authentication.is_valid_user, name='isValidUser'),
 
