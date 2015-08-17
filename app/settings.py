@@ -78,7 +78,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.media",
     "django.core.context_processors.request",
     "django.core.context_processors.tz",
-#    "bugsdjango.app.context_processors.common_data_to_templates",
+    "app.bugs_context_processor.init_data",
 )
 
 WSGI_APPLICATION = 'app.wsgi.application'
