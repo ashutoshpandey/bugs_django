@@ -1,10 +1,8 @@
-from django.shortcuts import render, redirect, RequestContext
-from django.http import HttpResponse
-from django.contrib.sessions.models import Session
+from django.shortcuts import render, redirect
+from django.http import HttpResponse, JsonResponse
+from django.core import serializers
 
-import json
-
-from app.models import Project,Bug,BugUser,User
+from app.models import Project, Bug, BugUser, User
 
 def user_section(request):
 
@@ -12,13 +10,13 @@ def user_section(request):
     if not user_id:
         return redirect('/')
 
-    running_projects = Project.objects.filter({'status': 'active'})
-    closed_projects = Project.objects.filter({'status': 'closed'})
-    current_bugs = Bug.objects.filter({'status': 'active'})
-    fixed_bugs = Bug.objects.filter({'status': 'fixed'})
-    unresolved_bugs = Bug.objects.filter({'status': 'unresolved'})
+    running_projects = Project.objects.filter(status='active').count()
+    closed_projects = Project.objects.filter(status='closed').count()
+    current_bugs = Bug.objects.filter(status='active').count()
+    fixed_bugs = Bug.objects.filter(status='fixed').count()
+    unresolved_bugs = Bug.objects.filter(status='unresolved').count()
 
-    user_bugs = BugUser.objects.filter({'user_id': user_id, 'status': 'active'})
+    user_bugs = BugUser.objects.filter(user_id=user_id, status='active')
 
     response_data = {
                         'running_projects': running_projects,
@@ -49,12 +47,12 @@ def save_user(request):
 
     email = request.POST.get('email')
 
-    user = User.objects.get({'email': email})
+    user = User.objects.filter(email=email).first()
 
     if user:
-        print('Duplicate email')
+        return HttpResponse('Duplicate email')
     else:
-        user = User.new
+        user = User()
 
         user.email = email
         user.name = request.POST.get('name')
@@ -64,7 +62,7 @@ def save_user(request):
 
         user.save()
 
-        print('User created successfully')
+        return HttpResponse('User created successfully')
 
 
 
@@ -188,13 +186,13 @@ def data_list_users(request):
 
     user_id = request.session['user_id']
     if not user_id:
-        return HttpResponse(json.dumps({'message': 'not logged'}), content_type="application/json")
+        return HttpResponse(JsonResponse({'message': 'not logged'}), content_type="application/json")
 
-    users = User.objects.get({'status': 'active'})
+    users = User.objects.filter(status='active')
 
-    if users and len(users)>0:
-        response_data = {'found': True, 'users': users, 'message': 'logged'}
+    if users and len(users) > 0:
+        response_data = {'found': True, 'users': serializers.serialize('json',users), 'message': 'logged'}
     else:
         response_data = {'found': False, 'message': 'logged'}
 
-    return HttpResponse(json.dumps(response_data), content_type="application/json")
+    return HttpResponse(JsonResponse(response_data), content_type="application/json")

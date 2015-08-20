@@ -1,0 +1,10 @@
+{
+  "name": "bugsdjango",
+  "description": "Django bugs project dependencies",
+  "dependencies": {
+    "jquery": "~1.10.2"
+  },
+  "authors": [
+    "Ashutosh Pandey <ashutoshpandey.test@gmail.com>"
+  ]
+}

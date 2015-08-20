@@ -1,4 +1,5 @@
 {% load staticfiles %}
+
 <img src="{% static "images/logo.png" %}"/>
 
 <h1>Bug Tracking System</h1>
@@ -7,11 +8,11 @@ Welcome : {{name}} <br/><br/><br/>
 
 <!-- You can name the links with lowercase, they will be transformed to uppercase by CSS, we prefered to name them with uppercase to have the same effect with disabled stylesheet -->
 <ul id="mainNav">
-    <li><a href="{{root}}/user-section">DASHBOARD</a></li>
-    <li><a href="{{root}}/list-projects">PROJECTS</a></li>
-    {% if userType == "Administrator" %}
-        <li><a href="{{root}}/list-users">USERS</a></li>
+    <li><a href="{{root}}user-section">DASHBOARD</a></li>
+    <li><a href="{{root}}list-projects">PROJECTS</a></li>
+    {% if user_type and user_type == "Administrator" %}
+        <li><a href="{{root}}list-users">USERS</a></li>
     {% endif %}
-    <li><a href="{{root}}/profile">PROFILE</a></li>
-    <li class="logout"><a href="{{root}}/logout">LOGOUT</a></li>
+    <li><a href="{{root}}profile">PROFILE</a></li>
+    <li class="{{root}}logout"><a href="logout">LOGOUT</a></li>
 </ul>

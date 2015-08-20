@@ -13,7 +13,7 @@
     <link type="text/css" rel="stylesheet" href="{% static "css/common.css" %}"/>
     <link type="text/css" rel="stylesheet" href="{% static "css/projects/list.css" %}"/>
 
-    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "bower_components/jquery/jquery.js" %}"></script>
     <script type="text/javascript" src="{% static "js/jquery.dataTables.min.js" %}"></script>
     <script type="text/javascript" src="{% static "js/common.js" %}"></script>
     <script type="text/javascript" src="{% static "js/projects/list.js" %}"></script>
@@ -24,11 +24,11 @@
 
     <div id="wrapper" class="main-container">
 
-        {% include includes.header.html %}
+        {% include "includes/header.html" %}
 
         <div class="header">
             <div>
-                <a href="{{root}}/create-project">Create project</a>
+                <a href="{{root}}create-project">Create project</a>
             </div>
 
             <br/>
@@ -41,7 +41,7 @@
 
 </div>
 
-{% include includes.footer.html %}
+{% include "includes/footer.html" %}
 
 </body>
 </html>

@@ -12,7 +12,7 @@
     <link type="text/css" rel="stylesheet" href="{% static "css/theme/transdmin.css" %}"/>
     <link type="text/css" rel="stylesheet" href="{% static "css/users/user-section.css" %}"/>
 
-    <script type="text/javascript" src="{% static "js/jquery-1.10.2.js" %}"></script>
+    <script type="text/javascript" src="{% static "bower_components/jquery/jquery.js" %}"></script>
     <script type="text/javascript" src="{% static "js/common.js" %}"></script>
     <script type="text/javascript" src="{% static "js/users/user-section.js" %}"></script>
 
@@ -22,18 +22,18 @@
 
     <div id="wrapper" class="main-container">
 
-        {% include includes.header.html %}
+        {% include "includes/header.html" %}
 
         <table>
             <tr>
                 <td style="width: 150px; line-height: 30px;">Running projects</td>
                 <td style="width:50px">:</td>
-                <td>{{runningProjects}}</td>
+                <td>{{running_projects}}</td>
             </tr>
             <tr>
                 <td style="width: 150px; line-height: 30px">Closed projects</td>
                 <td style="width:50px">:</td>
-                <td>{{closedProjects}}</td>
+                <td>{{closed_projects}}</td>
             </tr>
             <tr>
                 <td style="width: 150px; line-height: 30px" colspan="3"><hr/></td>
@@ -41,40 +41,44 @@
             <tr>
                 <td style="width: 150px; line-height: 30px">Current bugs count</td>
                 <td style="width:50px">:</td>
-                <td>{{currentBugs}}</td>
+                <td>{{current_bugs}}</td>
             </tr>
             <tr>
                 <td style="width: 150px; line-height: 30px">Fixed bugs count</td>
                 <td style="width:50px">:</td>
-                <td>{{fixedBugs}}</td>
+                <td>{{fixed_bugs}}</td>
             </tr>
             <tr>
                 <td style="width: 150px; line-height: 30px">Unresolved bugs</td>
                 <td style="width:50px">:</td>
-                <td>{{unresolvedBugs}}</td>
+                <td>{{unresolved_bugs}}</td>
             </tr>
         </table>
 
-        {%  if userBugs and userBugs|length > 0  %}
+        {%  if user_bugs and user_bugs|length > 0  %}
 
                 <br/><br/><b>Bugs you are assigned on</b><br/><br/>
 
-                {% i = 0 %}
+                {% with i=0 %}
 
-                {% for userBug in userBugs %}
-                    {% i=i+1 %}
+                {% for user_bug in user_bugs %}
+                    {{ i|add:"1" }}
 
-                    {% project = userBug.bug.project  %}
+                    {% with project=user_bug.bug.project  %}
 
                     <b>{{ i }}.</b> <u>{{ project.name }}</u> : <a href='{{ root }}/bug-detail/{{ userBug.bug_id }}'>{{ userBug.bug.title }}</a><br/><br/>";
 
+                    {% endwith %}
+
                 {% endfor %}
+
+                {% endwith %}
 
         {% endif %}
     </div>
 </div>
 
-{% include includes.footer.html %}
+{% include "includes/footer.html" %}
 
 </body>
 </html>

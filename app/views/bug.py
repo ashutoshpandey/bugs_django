@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect, RequestContext
-from django.http import HttpResponse
-from django.contrib.sessions.models import Session
+from django.http import HttpResponse, JsonResponse
 
 import json
 import time
@@ -244,7 +243,7 @@ def bug_detail(request,bug_id):
         if bug and project:
             request.session['current_bug_id'] = bug_id
 
-            bug_files = BugFile.objects.filter('bug_id', bug_id)
+            bug_files = BugFile.objects.filter(bug_id=bug_id)
 
             data = {'project': project, 'bug': bug, 'bugFiles': bug_files}
 
@@ -263,7 +262,7 @@ def download_bug(bug_id):
 
         if bug:
 
-            bug_files = BugFile.objects.filter('bug_id', bug_id)
+            bug_files = BugFile.objects.filter(bug_id=bug_id)
 
             if bug_files:
 
@@ -282,14 +281,14 @@ def data_list_bugs(request):
     user_id = request.session['user_id']
     if not user_id:
         response_data = {'message': 'not logged'}
-        return HttpResponse(json.dumps(response_data), content_type="application/json")
+        return HttpResponse(JsonResponse(response_data), content_type="application/json")
 
     project_id = request.session['currentProject']
 
     bug_type = request.POST.get('bug_type')
 
     if project_id:
-        bugs = Bug.objects.filter('project_id', project_id).where('status','=',bug_type).get()
+        bugs = Bug.objects.filter(project_id=project_id, status=bug_type)
 
         if bugs and len(bugs)>0:
             response_data = {'found': True, 'bugs': bugs, 'message': 'logged'}
@@ -299,7 +298,7 @@ def data_list_bugs(request):
     else:
         response_data = {'found': False, 'message': 'logged'}
 
-    return HttpResponse(json.dumps(response_data), content_type="application/json")
+    return HttpResponse(JsonResponse(response_data), content_type="application/json")
 
 
 def data_list_bug_comments(request):
@@ -307,12 +306,12 @@ def data_list_bug_comments(request):
     user_id = request.session['user_id']
     if not user_id:
         response_data = {'message': 'not logged'}
-        return HttpResponse(json.dumps(response_data), content_type="application/json")
+        return HttpResponse(JsonResponse(response_data), content_type="application/json")
 
     bug_id = request.session['current_bug_id']
 
     if bug_id:
-        comments = BugComment.objects.filter('bug_id', bug_id)
+        comments = BugComment.objects.filter(bug_id=bug_id)
 
         if comments and len(comments)>0:
             response_data = {'found': True, 'comments': comments, 'message': 'logged'}
@@ -321,7 +320,7 @@ def data_list_bug_comments(request):
     else:
         response_data = {'found': False, 'message': 'logged'}
 
-    return HttpResponse(json.dumps(response_data), content_type="application/json")
+    return HttpResponse(JsonResponse(response_data), content_type="application/json")
 
 def send_new_bug_email(username, email, project, bugTitle, description, attachments):
     portal = "BUGS@YOGASMOGA"

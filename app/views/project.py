@@ -1,8 +1,9 @@
-from django.shortcuts import render, redirect, RequestContext
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.contrib.sessions.models import Session
+from django.http import JsonResponse
+from django.core import serializers
 
-import json
+import time
 
 from app.models import Project
 
@@ -19,24 +20,25 @@ def save_project(request):
 
     user_id = request.session['user_id']
     if not user_id:
-        return "not logged"
+        return HttpResponse("not logged")
 
     name = request.POST.get('name')
-    project = Project.objects.filter({'name': name, 'status': 'active'})
+    project = Project.objects.filter(name=name, status='active')
 
     if project:
-        return "duplicate"
+        return HttpResponse("duplicate")
     else:
-        project = Project.new
+        project = Project()
 
         project.name = name
         project.description = request.POST.get('description')
         project.status = 'active'
         project.created_by = request.session['user_id']
+        project.created_at = time.strftime('%Y-%m-%d %H:%M:%S')
 
         project.save()
 
-        print('done')
+        return HttpResponse('done')
 
 
 
@@ -118,23 +120,23 @@ def list_projects(request):
     if not user_id:
         return redirect('/')
 
-    projects = Project.objects.filter('status','active')
+    projects = Project.objects.filter(status='active')
 
     return render(request, 'projects/list.html', {'projects': projects})
 
 
-#***************** json methods *****************
+# ***************** json methods *****************
 def data_list_projects(request):
 
     user_id = request.session['user_id']
     if not user_id:
-        return HttpResponse(json.dumps({'message': 'not logged'}), content_type="application/json")
+        return HttpResponse(JsonResponse({'message': 'not logged'}), content_type="application/json")
 
-    projects = Project.objects.filter({'status','active'})
+    projects = Project.objects.filter(status='active')
 
-    if projects and len(projects)>0:
-        response_data = {'found': True, 'projects': projects, 'message': 'logged'}
+    if projects and len(projects) > 0:
+        response_data = {'found': True, 'projects': serializers.serialize('json',projects), 'message': 'logged'}
     else:
         response_data = {'found': False, 'message': 'logged'}
 
-    return HttpResponse(json.dumps(response_data), content_type="application/json")
+    return HttpResponse(JsonResponse(response_data), content_type="application/json")
